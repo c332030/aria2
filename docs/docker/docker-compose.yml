@@ -1,0 +1,54 @@
+
+version: "3"
+
+services:
+
+  aria2:
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    image: p3terx/aria2-pro
+    container_name: aria2
+    environment:
+      - RPC_SECRET=123456
+    volumes:
+      - ./aria2/config:/config
+      - ./aria2/downloads:/downloads
+
+  ariang:
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    image: p3terx/ariang
+    container_name: ariang
+    depends_on:
+      - aria2
+
+  filebrowser:
+    restart: unless-stopped
+    privileged: true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    image: filebrowser/filebrowser
+    container_name: filebrowser
+    ports:
+      - 8002:80
+    volumes:
+      - ./aria2/downloads:/srv/aria2
+      - ./acme/data:/srv/cert:ro
+
+      - ./filebrowser:/data
+      - ./filebrowser/filebrowser.json:/.filebrowser.json
+
+    depends_on:
+      - aria2
